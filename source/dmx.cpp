@@ -8,3 +8,13 @@
  * @copyright Copyright (c) 2024
  * 
  */
+
+#include <dmx.h>
+
+/**
+ * @brief methode to initialize core functions of dmx lib
+ * 
+ */
+void dmx::_init(){
+
+}

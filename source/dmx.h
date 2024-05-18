@@ -8,13 +8,14 @@
  * @copyright Copyright (c) 2024
  * 
  */
-
-
+#include <hardware/pio.h>
+#include <dmx.pio.h>
 
 class dmx
 {
 private:
     void _sendFrame();
+    void _init();
 public:
     dmx(/* args */);
     ~dmx();
