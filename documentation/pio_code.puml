@@ -1,0 +1,20 @@
+@startuml dmxPioCode
+    state "transmit data" as datatrans {
+        state "start bit" as startBit 
+        startBit: 0 for 2 CLK
+
+
+        state "data bits" as dataBits
+        dataBits: data for 8x2 CLK
+
+        state "stop bit"  as stopBits
+        stopBits: 1 for 2 CLK
+
+        [*] -d-> startBit
+        startBit -d-> dataBits
+        dataBits -d-> stopBits
+        stopBits -d-> [*] 
+    }
+    
+    
+@enduml

@@ -15,6 +15,7 @@
  * @brief methode to initialize core functions of dmx lib
  * 
  */
-void dmx::_init(){
-
+void dmx::_initPio(){
+    _pioOffset = pio_add_program(_pio,);
+    _pioSm = pio_claim_unused_sm(_pio, true);
 }

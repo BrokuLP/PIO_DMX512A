@@ -3,11 +3,7 @@
 
 
 loop:
-    pull
+    
 
+    
 
-
-static inline void dmx_interface_init(PIO pio, uint sm, uint offset, uint pin_tx, uint pin_rx, uint pin_dir)
-{
-    pio_sm_config config = 
-}
