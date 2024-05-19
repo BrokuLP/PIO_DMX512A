@@ -1,20 +1,111 @@
 @startuml dmxPioCode
-    state "transmit data" as datatrans {
-        state "start bit" as startBit 
-        startBit: 0 for 2 CLK
+    
 
+    split
+        -[hidden]->
+        (A)
+    split again
+        -[hidden]->
+        start
+    endsplit
 
-        state "data bits" as dataBits
-        dataBits: data for 8x2 CLK
+    :pull (non blocking);
+    :DIR = 1;
 
-        state "stop bit"  as stopBits
-        stopBits: 1 for 2 CLK
+    floating note left
+        - all timings in bit
+        - system running at 500kHz
+        - X is bit counter
+        - first byte in input fifo is start code
+        - system starts transmitting after data is presented in fifo
+    end note
 
-        [*] -d-> startBit
-        startBit -d-> dataBits
-        dataBits -d-> stopBits
-        stopBits -d-> [*] 
-    }
+    :X = 22;
+
+    if (!OSRE) then (not empty)
+ 
+        partition "Write mode"{
+            :DIR = 0;
+            partition "send break"{
+                repeat : TX = 0 for 1 bit;
+                    :X --;
+                repeat while (X != 0) is (true) not (false)
+            }
+            partition "send mark"{
+                :TX = 1 for 2 bit;
+            }
+            partition "send data"{
+                repeat:X = 8;
+                    :TX = 0 for 1 bit;
+                    note left : send startbit 
+                    repeat : TX = OSRE[X];
+                        note left : shift one bit to TX pin
+                        :X--;
+                    repeat while (X != 0) is (true) not (false)
+                    :TX = 1 for 2 bit;
+                    note left : send 2 stopbit
+                    :pull (non blocking);
+                    note left : try to load data for next byte
+                repeat while (OSRE) is (not empty) not (empty)
+                (A)
+                detach
+            }
+        }
+
+    else (empty)
+        partition "Read Mode"{
+            partition "check for break"{
+                repeat : X--;
+                    if (RX !=0 ) then (true)
+                        (A)
+                    endif
+                repeat while (X!=0) is (true) not (false)
+                : wait till RX == 1;
+                note left :  wait till mark after break (MAB) occurs
+            }
+            partition "wait for MAB"{
+                note
+                    if more than two bits are send
+                    assume demaged frame and got 
+                    to idle state (A)
+                end note
+                :X = 3;
+                repeat : X--;
+                    if (X == 0) then (true)
+                        (A)
+                    endif
+                repeat while (RX == 1) is (true) not (false)
+            }
+            partition "read byte"{
+                note
+                    if more than 2 stop bits detected
+                    assume bus is in idle state (A)
+                    (frame is completed)
+                end note
+                while (true)
+                    :X = 8;
+                    :wait 1 bit;
+                    note left : wait till start bit is over
+                    repeat : X--;
+                        :in 1 bit RX;
+                        note left : read value of bit on center of bit
+                    repeat while (X != 0) is (true) not (false)
+                    :push (non blocking);
+                    :X = 2;
+                    while (RX = 1)
+                        : X--;
+                        note left : check for stop bit count
+                        if (X == 0) then (true)
+                        (A)
+                        endif
+                    endwhile (RX = 0)
+                endwhile
+                    -[hidden]->
+                    detach
+                
+            }
+        }
+
     
     
 @enduml
