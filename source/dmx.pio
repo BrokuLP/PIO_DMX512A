@@ -9,47 +9,50 @@
 
 .define bits_break 22
 .define bits_mark 2
+.define mode_out
+.define mode_in
 .side_set 1
 
 
+
 idle:
-    pull noblock side 1 ; try to pull data
-    set Y,bits_break ; set bit counter bit break
-    jmp !OSRE writemode
+    pull noblock side mode_in ; try to pull data
+    set Y,bits_break side mode_in; set bit counter bit break
+    jmp !OSRE writemode side mode_in
 
 ;readmode
 readmode:
 checkBreak:
-    jmp Pin idle
-    jmp X-- checkBreak
-    wait 1 pin 0
-    set x, 3
+    jmp Pin idle side mode_in
+    jmp Y-- checkBreak side mode_in
+    wait 1 pin 0 mode side mode_in
+    set Y, 3 mode side mode_in
 waitMAB:
-    jmp Pin idle
-    jmp x-- waitMAB
+    jmp Pin idle side mode_in
+    jmp Y-- waitMAB side mode_in
 readByte:
-    set X, 8 [2] ; wait till start bit is over and half of first bit
+    set Y, 8 [2] side mode_in ; wait till start bit is over and half of first bit
 readBit:
-    in PINS, 1
-    jmp x-- readBit
+    in PINS, 1 side mode_in
+    jmp Y-- readBit side mode_in
 
-    set x, 2
+    set Y, 2
 waitStopBit:
     jmp pin idle
-    jmp x-- readByte
+    jmp Y-- readByte
 
 writemode:
 sendbreak:
     set PINS 01 10
-    jmp X-- sendbreak
+    jmp Y-- sendbreak
 
     ;send mark
     set PINS 1 1 [3]
 
 senddata:
-    set X,8 side 0 [1]
+    set Y,8 side 0 [1]
 sendbyte:
     out 1, 1
-    jmp X-- sendbreak
+    jmp Y-- sendbreak
     pull noblock side 1
     jmp !OSRE senddata

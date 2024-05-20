@@ -1,6 +1,42 @@
-@startuml dma_code
+@startuml dma_code_controller
     start
+    partition "init"{
+        partition "init DMA"{
 
+        }
+        partition "init PIO"{
+            
+        }
+        partition "set config"{
+            
+        }
+    }
+    (A)
+        partition "receiving"{
+            
+        }
+        partition "transmitting"{
+            switch (packetType)
+            case (DMX)
+                partition "send DMX"{
+                    :put StartCode_DMX to FIFO;
+                    :channelCount = packetSize;
+                    repeat :put DMX_byte to FIFO;
+                        :channelCount --;
+                    backward: word in FIFO clears;
+                    repeat while (channelCount !=0)
+                }
+                (A)
+                detach
+            case (RDM)
+            case (Reply)
+            endswitch
+
+        }
+        
+        partition "error"{
+
+        }
     
     end
 @enduml
